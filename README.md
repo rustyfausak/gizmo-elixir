@@ -2,6 +2,23 @@
 
 **A Rocket League replay parser in Elixir.**
 
+## Escript Build
+
+Windows
+
+```
+$ mix escript.build
+$ escript gizmo <path>
+```
+
+Unix
+
+```
+$ mix escript.build
+$ ./gizmo <path>
+```
+
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
