@@ -1,6 +1,6 @@
-# Gizmo
+# gizmo-elixir
 
-**TODO: Add description**
+**A Rocket League replay parser in Elixir.**
 
 ## Installation
 
