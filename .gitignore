@@ -6,3 +6,4 @@ erl_crash.dump
 .floo
 .flooignore
 /gizmo
+output.txt
