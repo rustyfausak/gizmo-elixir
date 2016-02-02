@@ -5,5 +5,5 @@ erl_crash.dump
 *.ez
 .floo
 .flooignore
-/gizmo
+gizmo.es
 output.txt

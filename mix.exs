@@ -34,6 +34,9 @@ defmodule Gizmo.Mixfile do
 	end
 
 	defp escript_config do
-		[main_module: Gizmo.CLI]
+		[
+			main_module: Gizmo.CLI,
+			name: 'gizmo.es'
+		]
 	end
 end

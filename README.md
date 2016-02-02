@@ -8,14 +8,20 @@ Windows
 
 ```
 $ mix escript.build
-$ escript gizmo <path>
+$ escript gizmo.es <replay path>
+```
+
+or
+
+```
+$ run.bat <replay path>
 ```
 
 Unix
 
 ```
 $ mix escript.build
-$ ./gizmo <path>
+$ ./gizmo.es <replay path>
 ```
 
 
