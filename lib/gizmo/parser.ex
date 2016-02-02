@@ -1,11 +1,15 @@
 defmodule Gizmo.Parser do
+	alias Gizmo.Replay, as: Replay
+	alias Gizmo.Meta, as: Meta
+	alias Gizmo.Reader, as: Reader
+
 	@doc """
 	`path` is a string.
 	"""
 	def parse(path) do
 		data = File.read!(path)
 		{meta, _netstream} = parse_meta(data)
-		replay = Map.put(%Gizmo.Replay{}, :meta, meta)
+		replay = Map.put(%Replay{}, :meta, meta)
 		IO.inspect(replay, pretty: true)
 	end
 
@@ -13,7 +17,7 @@ defmodule Gizmo.Parser do
 	Return tuple `{meta, netstream}`.
 	"""
 	def parse_meta(data) do
-		{meta, data} = parse_header(data, %Gizmo.Meta{})
+		{meta, data} = parse_header(data, %Meta{})
 		parse_body(data, meta)
 	end
 
@@ -28,9 +32,9 @@ defmodule Gizmo.Parser do
 			version2 :: little-unsigned-integer-size(32),
 			data :: binary
 		>> = data
-		{label, data} = Gizmo.Reader.read_string(data)
-		{properties, data} = Gizmo.Reader.read_map(data, &Gizmo.Reader.read_property/1)
-		{Map.merge(meta, %Gizmo.Meta{
+		{label, data} = Reader.read_string(data)
+		{properties, data} = Reader.read_property_map(data, &Meta.Property.read/1)
+		{Map.merge(meta, %{
 			size1: size1,
 			crc1: crc1,
 			version1: version1,
@@ -49,19 +53,19 @@ defmodule Gizmo.Parser do
 			crc2 :: little-unsigned-integer-size(32),
 			data :: binary
 		>> = data
-		{levels, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_string/1)
-		{keyframes, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_keyframe/1)
+		{levels, data} = Reader.read_list(data, &Reader.read_string/1)
+		{keyframes, data} = Reader.read_list(data, &Meta.Keyframe.read/1)
 		<< netstream_bytes :: little-unsigned-integer-size(32), data :: binary >> = data
 		netstream_bits = netstream_bytes * 8
 		<< netstream :: bits-size(netstream_bits), data :: binary >> = data
-		{messages, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_message/1)
-		{marks, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_mark/1)
-		{packages, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_string/1)
-		{objects, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_string/1)
+		{messages, data} = Reader.read_list(data, &Meta.Message.read/1)
+		{marks, data} = Reader.read_list(data, &Meta.Mark.read/1)
+		{packages, data} = Reader.read_list(data, &Reader.read_string/1)
+		{objects, data} = Reader.read_list(data, &Reader.read_string/1)
 		object_map = Enum.into(Enum.with_index(objects), %{}, fn({v, k}) -> {k, v} end)
-		{names, data} = Gizmo.Reader.read_list(data, &Gizmo.Reader.read_string/1)
+		{names, data} = Reader.read_list(data, &Reader.read_string/1)
 		# TODO: class_property_map
-		{Map.merge(meta, %Gizmo.Meta{
+		{Map.merge(meta, %{
 			size2: size2,
 			crc2: crc2,
 			levels: levels,

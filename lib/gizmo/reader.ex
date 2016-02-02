@@ -1,94 +1,46 @@
 defmodule Gizmo.Reader do
-	def read_mark(data) do
-		{type, data} = read_string(data)
-		<< frame :: little-unsigned-integer-size(32), data :: binary >> = data
-		mark = %Gizmo.Meta.Mark{
-			type: type,
-			frame: frame
-		}
-		{mark, data}
-	end
+	@moduledoc """
+	Handle reading basic types from a Rocket League replay binary file. The `data`
+	parameter in these functions represents the binary file.
+	"""
 
-	def read_message(data) do
-		<< frame :: little-size(32), data :: binary >> = data
-		{name, data} = read_string(data)
-		{content, data} = read_string(data)
-		message = %Gizmo.Meta.Message{
-			frame: frame,
-			name: name,
-			content: content
-		}
-		{message, data}
-	end
+	@doc """
+	Read a list. Each item is read using the function `read_element`.
 
-	def read_keyframe(data) do
-		<< time :: little-float-size(32), data :: binary >> = data
-		<< frame :: little-size(32), data :: binary >> = data
-		<< position :: little-size(32), data :: binary >> = data
-		keyframe = %Gizmo.Meta.Keyframe{
-			time: time,
-			frame: frame,
-			position: position
-		}
-		{keyframe, data}
-	end
-
-	def read_property(data) do
-		{type, data} = read_string(data)
-		<< size :: little-size(64), data :: binary >> = data
-		{value, data} = case to_string(type) do
-			"ArrayProperty" ->
-				{x, data} = read_list(data, fn x -> read_map(x, &read_property/1) end)
-				{x, data}
-				# read_list(data, &read_map(data, &read_property/1)/2)
-			"BoolProperty" ->
-				<< x :: little-size(8), data :: binary >> = data
-				{if x == 1 do true else false end, data}
-			"ByteProperty" ->
-				{key, data} = read_string(data)
-				{value, data} = read_string(data)
-				{{key, value}, data}
-			"FloatProperty" ->
-				<< x :: little-float-size(32), data :: binary >> = data
-				{x, data}
-			"IntProperty" ->
-				<< x :: little-size(32), data :: binary >> = data
-				{x, data}
-			"NameProperty" ->
-				{x, data} = read_string(data)
-				{x, data}
-			"QWordProperty" ->
-				<< x :: little-size(64), data :: binary >> = data
-				{x, data}
-			"StrProperty" ->
-				{x, data} = read_string(data)
-				{x, data}
-			_ -> raise "unknown property type #{type}"
-		end
-		property = %Gizmo.Meta.Property{
-			type: type,
-			size: size,
-			value: value
-		}
-		{property, data}
-	end
-
+	Returns a tuple of `{list, data}`.
+	"""
 	def read_list(data, read_element) do
 		<< length :: little-unsigned-integer-size(32), data :: binary >> = data
 		read_list(data, length, read_element)
 	end
 
+	@doc """
+	Base case for `read_list` recursion.
+
+	Returns a tuple of `{list, data}`.
+	"""
 	def read_list(data, n, _read_element) when n < 1 do
 		{[], data}
 	end
 
+	@doc """
+	Read a list of `n` elements. Each item is read using the function `read_element`.
+
+	Returns a tuple of `{list, data}`.
+	"""
 	def read_list(data, n, read_element) do
 		{element, data} = read_element.(data)
 		{list, data} = read_list(data, n - 1, read_element)
 		{[element | list] , data}
 	end
 
-	def read_map_entry(data, read_value) do
+	@doc """
+	Read a property map entry using the function `read_value` for the value of the
+	key/value pair.
+
+	Returns a tuple of `{key, value, data}`.
+	"""
+	def read_property_map_entry(data, read_value) do
 		{key, data} = read_string(data)
 		if key == 'None' do
 			{nil, nil, data}
@@ -98,31 +50,47 @@ defmodule Gizmo.Reader do
 		end
 	end
 
-	def read_map(data, read_value) do
-		{key, value, data} = read_map_entry(data, read_value)
+	@doc """
+	Read a property map. Each value in the key/value pairs is read using the function
+	`read_value`.
+
+	Returns a map.
+	"""
+	def read_property_map(data, read_value) do
+		{key, value, data} = read_property_map_entry(data, read_value)
 		if key && value do
-			{new_dictionary, data} = read_map(data, read_value)
-			dictionary = Map.merge(
-				%{key => value},
-				new_dictionary
-			)
-			{dictionary, data}
+			{map, data} = read_property_map(data, read_value)
+			{Map.put(map, key, value), data}
 		else
 			{%{}, data}
 		end
 	end
 
-	def read_string(data, string, n, _match) when n <= 1 do
-		# Read the null terminator for the string
-		<< _ :: size(8), data :: binary >> = data
+	@doc """
+	Read the null terminator for a string. Base case for `read_string` recursion.
+
+	Returns a tuple of `{string, data}`.
+	"""
+	def read_string(<< _ :: size(8), data :: binary >>, string, n, _read_char) when n <= 1 do
 		{string, data}
 	end
 
-	def read_string(data, string, n, match) do
-		{char, data} = match.(data)
-		read_string(data, string ++ [char], n - 1, match)
+	@doc """
+	Read a character using the function `read_char` off the string.
+
+	Returns a tuple of `{string, data}`.
+	"""
+	def read_string(data, string, n, read_char) do
+		{char, data} = read_char.(data)
+		read_string(data, string ++ [char], n - 1, read_char)
 	end
 
+	@doc """
+	Read an integer specifying the size of the string, then recursively read
+	a string of that size.
+
+	Returns a tuple of `{string, data}`.
+	"""
 	def read_string(<< length :: little-unsigned-integer-size(32), data :: binary >>) do
 		if length > 0 do
 			read_string(data, [], length, &read_utf8_char/1)
@@ -131,13 +99,21 @@ defmodule Gizmo.Reader do
 		end
 	end
 
-	def read_utf8_char(data) do
-		<< char :: utf8, data :: binary >> = data
+	@doc """
+	Read a UTF-8 character.
+
+	Returns a tuple of `{char, data}`.
+	"""
+	def read_utf8_char(<< char :: utf8, data :: binary >>) do
 		{char, data}
 	end
 
-	def read_utf16_char(data) do
-		<< char :: utf16, data :: binary >> = data
+	@doc """
+	Read a UTF-16 character.
+
+	Returns a tuple of `{char, data}`.
+	"""
+	def read_utf16_char(<< char :: utf16, data :: binary >>) do
 		{char, data}
 	end
 end
