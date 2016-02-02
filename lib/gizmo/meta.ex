@@ -22,28 +22,17 @@ defmodule Gizmo.Meta do
 	]
 
 	@doc """
-	`class_map` is a map:
-		`%{class_netstream_id => property_object_id, ..}`
+	`class_map` is a map: `%{netstream_id => name, ..}`
+	`cache` is a list of CacheNode: `[%CacheNode{..}, ..]`
 
-	`property_cache` is a list of PropertyCacheNode:
-		`[%PropertyCacheNode{..}, ..]`
-
-	Returns a map:
-		`%{class_netstream_id => %{
-			property_netstream_id => property_object_id
-		}, ..}`
+	Returns a map of map:
+		`%{class_netstream_id => %{property_netstream_id => name, ..}, ..}`
 	"""
-	def generate_class_property_map(class_map, property_cache) do
-		Enum.reduce(class_map, %{}, fn({class_netstream_id, class}, acc) ->
-			node = Enum.find(
-				property_cache,
-				fn(x) -> x.class_id == class_netstream_id end
-			)
+	def generate_class_property_map(class_map, cache) do
+		Enum.reduce(class_map, %{}, fn({netstream_id, name}, acc) ->
+			node = Enum.find(cache, fn(x) -> x.class_id == netstream_id end)
 			if node do
-				Map.put(acc, class_netstream_id, %{
-					class: class,
-					properties: get_properties(property_cache, node.cache_id)
-				})
+				Map.put(acc, netstream_id, get_property_map(cache, node.cache_id))
 			else
 				acc
 			end
@@ -51,23 +40,22 @@ defmodule Gizmo.Meta do
 	end
 
 	@doc """
-	Look for the PropertyCacheNode with `cache_id` and return its properties
-	merged with its parents properties.
+	Look for the CacheNode with `cache_id` and return its properties merged with
+	its parents properties.
+
+	Returns a map.
 	"""
-	def get_properties(property_cache, cache_id) do
-		property_cache_node = Enum.find(
-			property_cache,
-			fn(x) -> x.cache_id == cache_id end
-		)
+	def get_property_map(cache, cache_id) do
+		cache_node = Enum.find(cache, fn(x) -> x.cache_id == cache_id end)
 		cond do
-			!property_cache_node ->
+			!cache_node ->
 				%{}
-			!property_cache_node.parent_cache_id || property_cache_node.parent_cache_id == cache_id ->
-				property_cache_node.property_map
+			!cache_node.parent_cache_id || cache_node.parent_cache_id == cache_id ->
+				cache_node.property_map
 			true ->
 				Map.merge(
-					property_cache_node.property_map,
-					get_properties(property_cache, property_cache_node.parent_cache_id)
+					cache_node.property_map,
+					get_property_map(cache, cache_node.parent_cache_id)
 				)
 		end
 	end
@@ -75,36 +63,36 @@ defmodule Gizmo.Meta do
 	defmodule ClassMapNode do
 		defstruct [
 			:name,
-			:class_netstream_id
+			:netstream_id
 		]
 
 		def read(data) do
 			{name, data} = Reader.read_string(data)
-			<< class_netstream_id :: little-size(32), data :: binary >> = data
+			<< netstream_id :: little-size(32), data :: binary >> = data
 			{%ClassMapNode{
 				name: name,
-				class_netstream_id: class_netstream_id
+				netstream_id: netstream_id
 			}, data}
 		end
 	end
 
-	defmodule PropertyCacheNodeProperty do
+	defmodule CacheNodeProperty do
 		defstruct [
-			:property_netstream_id,
-			:property
+			:netstream_id,
+			:name
 		]
 
 		def read(data, object_map) do
 			<< object_id :: little-unsigned-integer-size(32), data :: binary >> = data
-			<< property_netstream_id :: little-unsigned-integer-size(32), data :: binary >> = data
-			{%PropertyCacheNodeProperty{
-				property_netstream_id: property_netstream_id,
-				property: Map.fetch!(object_map, object_id)
+			<< netstream_id :: little-unsigned-integer-size(32), data :: binary >> = data
+			{%CacheNodeProperty{
+				netstream_id: netstream_id,
+				name: Map.fetch!(object_map, object_id)
 			}, data}
 		end
 	end
 
-	defmodule PropertyCacheNode do
+	defmodule CacheNode do
 		defstruct [
 			:class_id,
 			:parent_cache_id,
@@ -117,14 +105,14 @@ defmodule Gizmo.Meta do
 			<< parent_cache_id :: little-unsigned-integer-size(32), data :: binary >> = data
 			<< cache_id :: little-unsigned-integer-size(32), data :: binary >> = data
 			{properties, data} = Reader.read_list(data,
-				fn(data) -> PropertyCacheNodeProperty.read(data, object_map) end
+				fn(data) -> CacheNodeProperty.read(data, object_map) end
 			)
 			property_map = Enum.reduce(properties, %{},
 				fn(property, acc) ->
-					Map.put(acc, property.property_netstream_id, property.property)
+					Map.put(acc, property.netstream_id, property.name)
 				end
 			)
-			{%PropertyCacheNode{
+			{%CacheNode{
 				class_id: class_id,
 				parent_cache_id: parent_cache_id,
 				cache_id: cache_id,

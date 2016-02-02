@@ -53,28 +53,59 @@ defmodule Gizmo.Parser do
 			crc2 :: little-unsigned-integer-size(32),
 			data :: binary
 		>> = data
+
+		# Array of strings for all of the levels that need to be loaded (array
+		# length followed by each string)
 		{levels, data} = Reader.read_list(data, &Reader.read_string/1)
+
+		# Array of Keyframe information used for timeline scrubbing (array
+		# length followed by each keyframe struct) (Time, Frame, File Position)
 		{keyframes, data} = Reader.read_list(data, &Meta.Keyframe.read/1)
+
+		# Array of bytes that is the bulk of the data. This is the raw network
+		# stream. (array length followed by a bunch of bytes)
 		<< netstream_bytes :: little-unsigned-integer-size(32), data :: binary >> = data
 		netstream_bits = netstream_bytes * 8
 		<< netstream :: bits-size(netstream_bits), data :: binary >> = data
+
+		# Array of debugging logs (strings). This reminds me that I should
+		# probably turn these off to make the replays smaller.
+		# (array length followed by each string)
 		{messages, data} = Reader.read_list(data, &Meta.Message.read/1)
+
+		# Array of information used to display the Tick marks in the replay
+		# (goal scores). (array length followed by each tick struct) (Type, Frame)
 		{marks, data} = Reader.read_list(data, &Meta.Mark.read/1)
+
+		# Array of strings of replicated Packages
 		{packages, data} = Reader.read_list(data, &Reader.read_string/1)
-		{objects, data} = Reader.read_list(data, &Reader.read_string/1)
-		object_map = Enum.into(Enum.with_index(objects), %{}, fn({v, k}) -> {k, v} end)
+
+		# Array of strings for the Object table. Whenever a persistent object
+		# gets referenced in the network stream its path gets added to this
+		# array. Then its index in this array is used in the network stream.
+		{object_map_nodes, data} = Reader.read_list(data, &Reader.read_string/1)
+		object_map = Enum.into(Enum.with_index(object_map_nodes), %{}, fn({v, k}) -> {k, v} end)
+
+		# Array of strings for the Name table. "Names" are commonly used strings
+		# that get assigned an integer for use in the network stream.
 		{names, data} = Reader.read_list(data, &Reader.read_string/1)
+
+		# Map of string, integer pairs for the Class Index Map. Whenever a class
+		# is used in the network stream it is given an integer id by this map.
 		{class_map_nodes, data} = Reader.read_list(data, &Meta.ClassMapNode.read/1)
 		class_map = Enum.reduce(class_map_nodes, %{},
 			fn(class_map_node, acc) ->
-				Map.put(acc, class_map_node.class_netstream_id, class_map_node.name)
+				Map.put(acc, class_map_node.netstream_id, class_map_node.name)
 			end
 		)
-		# {property_cache, data} = Reader.read_list(data, &(Meta.PropertyCacheNode.read(&1, object_map)))
-		{property_cache, data} = Reader.read_list(data,
-			fn(data) -> Meta.PropertyCacheNode.read(data, object_map) end
+
+		# "Class Net Cache Map" maps each replicated property in a class to an
+		# integer id used in the network stream.
+		{cache, data} = Reader.read_list(data,
+			fn(data) -> Meta.CacheNode.read(data, object_map) end
 		)
-		class_property_map = Meta.generate_class_property_map(class_map, property_cache)
+		class_property_map = Meta.generate_class_property_map(class_map, cache)
+
 		{Map.merge(meta, %{
 			size2: size2,
 			crc2: crc2,

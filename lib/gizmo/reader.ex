@@ -51,8 +51,8 @@ defmodule Gizmo.Reader do
 	end
 
 	@doc """
-	Read a property map. Each value in the key/value pairs is read using the function
-	`read_value`.
+	Read a property map. Each value in the key/value pairs is read using the
+	function `read_value`. Reads until a key of `None` is read.
 
 	Returns a map.
 	"""
