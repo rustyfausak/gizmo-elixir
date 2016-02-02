@@ -1,6 +1,6 @@
 # gizmo-elixir
 
-**A Rocket League replay parser in Elixir.**
+**A [Rocket League](http://rocketleague.psyonix.com/) replay parser in [Elixir](http://elixir-lang.org/).**
 
 ## Escript Build
 
