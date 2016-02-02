@@ -64,7 +64,17 @@ defmodule Gizmo.Parser do
 		{objects, data} = Reader.read_list(data, &Reader.read_string/1)
 		object_map = Enum.into(Enum.with_index(objects), %{}, fn({v, k}) -> {k, v} end)
 		{names, data} = Reader.read_list(data, &Reader.read_string/1)
-		# TODO: class_property_map
+		{class_map_nodes, data} = Reader.read_list(data, &Meta.ClassMapNode.read/1)
+		class_map = Enum.reduce(class_map_nodes, %{},
+			fn(class_map_node, acc) ->
+				Map.put(acc, class_map_node.class_netstream_id, class_map_node.name)
+			end
+		)
+		# {property_cache, data} = Reader.read_list(data, &(Meta.PropertyCacheNode.read(&1, object_map)))
+		{property_cache, data} = Reader.read_list(data,
+			fn(data) -> Meta.PropertyCacheNode.read(data, object_map) end
+		)
+		class_property_map = Meta.generate_class_property_map(class_map, property_cache)
 		{Map.merge(meta, %{
 			size2: size2,
 			crc2: crc2,
@@ -74,7 +84,9 @@ defmodule Gizmo.Parser do
 			marks: marks,
 			packages: packages,
 			object_map: object_map,
-			names: names
+			names: names,
+			class_map: class_map,
+			class_property_map: class_property_map
 		}), netstream}
 	end
 end
