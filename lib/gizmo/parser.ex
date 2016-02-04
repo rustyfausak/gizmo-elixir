@@ -2,15 +2,36 @@ defmodule Gizmo.Parser do
 	alias Gizmo.Replay, as: Replay
 	alias Gizmo.Meta, as: Meta
 	alias Gizmo.Reader, as: Reader
+	alias Gizmo.Frame, as: Frame
 
 	@doc """
 	`path` is a string.
 	"""
 	def parse(path) do
 		data = File.read!(path)
-		{meta, _netstream} = parse_meta(data)
+		{meta, netstream} = parse_meta(data)
 		replay = Map.put(%Replay{}, :meta, meta)
-		IO.inspect(replay, pretty: true)
+		frames = parse_frames(netstream, meta)
+		replay = Map.put(replay, :frames, frames)
+		IO.inspect(replay.frames, pretty: true)
+	end
+
+	@doc """
+	Netstream is replay file data for the replay frames.
+
+	Returns list of frames.
+	"""
+	def parse_frames(netstream, meta) do
+		Enum.reverse(_parse_frames(netstream, meta))
+	end
+
+	def _parse_frames(netstream, meta) do
+		{frame, netstream} = Frame.read(netstream, meta)
+		if frame do
+			[frame | _parse_frames(netstream, meta)]
+		else
+			[]
+		end
 	end
 
 	@doc """
@@ -18,7 +39,8 @@ defmodule Gizmo.Parser do
 	"""
 	def parse_meta(data) do
 		{meta, data} = parse_header(data, %Meta{})
-		parse_body(data, meta)
+		{meta, netstream} = parse_body(data, meta)
+		{meta, netstream}
 	end
 
 	@doc """

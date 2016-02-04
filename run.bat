@@ -1,2 +1,2 @@
 call mix do run, escript.build
-call escript gizmo %1 > output.txt
+call escript gizmo.es %1 > output.txt

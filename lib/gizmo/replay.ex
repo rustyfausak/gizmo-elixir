@@ -1,5 +1,6 @@
 defmodule Gizmo.Replay do
 	defstruct [
-		:meta
+		:meta,
+		:frames
 	]
 end
