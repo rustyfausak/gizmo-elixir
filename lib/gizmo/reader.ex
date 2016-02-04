@@ -4,24 +4,40 @@ defmodule Gizmo.Reader do
 	parameter in these functions represents the binary file.
 	"""
 
-	def reverse_endian(data) do
-		if byte_size(data) > 1 do
+	def reverse_bits_in_byte(data) do
+		if byte_size(data) > 0 do
 			<<
 				byte :: bits-size(8),
 				data :: bits
 			>> = data
-			reverse_bits(byte, <<>>) <> reverse_endian(data)
+			reverse_bits(byte) <> reverse_bits_in_byte(data)
 		else
 			<<>>
 		end
+	end
+
+	def reverse_bits(data) do
+		reverse_bits(data, <<>>)
 	end
 
 	def reverse_bits(<<>>, acc) do
 		acc
 	end
 
-	def reverse_bits(<< h :: size(1), data :: bits >>, acc) do
-		reverse_bits(data, << h :: size(1), acc :: bits >>)
+	def reverse_bits(<< b :: bits-size(1), data :: bits >>, acc) do
+		reverse_bits(data, << b :: bits-size(1), acc :: bits >>)
+	end
+
+	def read_float(data, n \\ 32) do
+		<< b :: bits-size(n), data :: bits >> = data
+		<< b :: float-size(n) >> = reverse_bits(b)
+		{b, data}
+	end
+
+	def read_int(data, n \\ 32) do
+		<< b :: bits-size(n), data :: bits >> = data
+		<< b :: unsigned-integer-size(n) >> = reverse_bits(b)
+		{b, data}
 	end
 
 	@doc """

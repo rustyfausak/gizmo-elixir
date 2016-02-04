@@ -1,4 +1,5 @@
 defmodule Gizmo.Netstream.Frame do
+	alias Gizmo.Reader, as: Reader
 	alias Gizmo.Netstream.Frame, as: Self
 	alias Gizmo.Netstream.Replication, as: Replication
 
@@ -16,8 +17,10 @@ defmodule Gizmo.Netstream.Frame do
 	"""
 	def read(data, meta) do
 		IO.inspect "Frame.read"
-		<< time :: little-float-size(32), data :: bits >> = data
-		<< delta :: little-float-size(32), data :: bits >> = data
+		{time, data} = Reader.read_float(data)
+		{delta, data} = Reader.read_float(data)
+		IO.inspect time
+		IO.inspect delta
 		if time == 0 && delta == 0 do
 			nil
 		end

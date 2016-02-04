@@ -2,6 +2,7 @@ defmodule Gizmo.Netstream.Replication do
 	@max_channels 1024
 
 	alias Gizmo.Helper, as: Helper
+	alias Gizmo.Reader, as: Reader
 	alias Gizmo.Netstream.ActorState, as: ActorState
 	alias Gizmo.Netstream.Replication, as: Self
 
@@ -16,6 +17,7 @@ defmodule Gizmo.Netstream.Replication do
 		IO.inspect(bits)
 		# 1 bit to signal we are replicating another actor
 		<< replication_flag :: bits-size(1), data :: bits >> = data
+		IO.inspect(replication_flag)
 		if replication_flag == << 0 :: size(1) >> do
 			IO.inspect "flag = 0"
 			{nil, data}
@@ -23,8 +25,7 @@ defmodule Gizmo.Netstream.Replication do
 			IO.inspect "flag = 1"
 			# compressed integer for the actor's network channel ID (max value is MaxChannels)
 			n = Helper.bitsize(@max_channels)
-			IO.inspect "read n #{n}"
-			<< actor_id :: size(n), data :: bits >> = data
+			{actor_id, data} = Reader.read_int(data, n)
 			IO.inspect "actor_id = #{actor_id}"
 			# 1 bit to signal if channel is closing (actor was destroyed)
 			<< channel_state :: bits-size(1), data :: bits >> = data

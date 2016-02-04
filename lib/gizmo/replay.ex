@@ -12,7 +12,7 @@ defmodule Gizmo.Replay do
 	def parse(data) do
 		{meta, netstream} = parse_meta(data)
 		replay = Map.put(%Replay{}, :meta, meta)
-		netstream = Reader.reverse_endian(netstream)
+		netstream = Reader.reverse_bits_in_byte(netstream)
 		frames = parse_netstream(netstream, meta)
 		replay = Map.put(replay, :frames, frames)
 		replay
