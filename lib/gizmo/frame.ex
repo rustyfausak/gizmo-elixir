@@ -7,17 +7,24 @@ defmodule Gizmo.Frame do
 		:replications
 	]
 
+	@doc """
+	Each frame is composed like this:
+	- Current Time
+	- Delta Time (since last frame)
+	- Data for actors
+	"""
 	def read(data, meta) do
-		<< time :: little-float-size(32), data :: binary >> = data
-		<< delta :: little-float-size(32), data :: binary >> = data
+		IO.inspect "Frame.read"
+		<< time :: little-float-size(32), data :: bits >> = data
+		<< delta :: little-float-size(32), data :: bits >> = data
 		if time == 0 && delta == 0 do
 			nil
 		end
-		%Frame{
+		{%Gizmo.Frame{
 			time: time,
-			delta: delta
+			delta: delta,
 			replications: read_replications(data, meta)
-		}
+		}, data}
 	end
 
 	def read_replications(data, meta) do
