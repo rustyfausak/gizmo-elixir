@@ -1,7 +1,7 @@
 defmodule Gizmo.Netstream.Frame do
-	alias Gizmo.Reader, as: Reader
 	alias Gizmo.Netstream.Frame, as: Self
 	alias Gizmo.Netstream.Replication, as: Replication
+	alias Gizmo.Reader, as: Reader
 
 	defstruct [
 		:time,
@@ -11,14 +11,14 @@ defmodule Gizmo.Netstream.Frame do
 
 	@doc """
 	Each frame is composed like this:
-	- Current Time
-	- Delta Time (since last frame)
-	- Data for actors
+	 - Current Time
+	 - Delta Time (since last frame)
+	 - Data for actors
 	"""
 	def read(data, meta) do
 		IO.inspect "Frame.read"
-		{time, data} = Reader.read_float(data)
-		{delta, data} = Reader.read_float(data)
+		{time, data} = Reader.read_rev_float(data)
+		{delta, data} = Reader.read_rev_float(data)
 		IO.inspect time
 		IO.inspect delta
 		if time == 0 && delta == 0 do

@@ -28,13 +28,13 @@ defmodule Gizmo.Reader do
 		reverse_bits(data, << b :: bits-size(1), acc :: bits >>)
 	end
 
-	def read_float(data, n \\ 32) do
+	def read_rev_float(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
 		<< b :: float-size(n) >> = reverse_bits(b)
 		{b, data}
 	end
 
-	def read_int(data, n \\ 32) do
+	def read_rev_int(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
 		<< b :: unsigned-integer-size(n) >> = reverse_bits(b)
 		{b, data}

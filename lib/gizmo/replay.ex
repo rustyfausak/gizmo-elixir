@@ -1,8 +1,15 @@
 defmodule Gizmo.Replay do
-	alias Gizmo.Replay, as: Replay
 	alias Gizmo.Meta, as: Meta
-	alias Gizmo.Reader, as: Reader
+	alias Gizmo.Meta.CacheNode, as: CacheNode
+	alias Gizmo.Meta.CacheNodeProperty, as: CacheNodeProperty
+	alias Gizmo.Meta.ClassMapNode, as: ClassMapNode
+	alias Gizmo.Meta.Keyframe, as: Keyframe
+	alias Gizmo.Meta.Mark, as: Mark
+	alias Gizmo.Meta.Message, as: Message
+	alias Gizmo.Meta.Property, as: Property
 	alias Gizmo.Netstream.Frame, as: Frame
+	alias Gizmo.Reader, as: Reader
+	alias Gizmo.Replay, as: Replay
 
 	defstruct [
 		:meta,
@@ -62,7 +69,7 @@ defmodule Gizmo.Replay do
 			data :: binary
 		>> = data
 		{label, data} = Reader.read_string(data)
-		{properties, data} = Reader.read_property_map(data, &Meta.Property.read/1)
+		{properties, data} = Reader.read_property_map(data, &Property.read/1)
 		{Map.merge(meta, %{
 			size1: size1,
 			crc1: crc1,
@@ -89,7 +96,7 @@ defmodule Gizmo.Replay do
 
 		# Array of Keyframe information used for timeline scrubbing (array
 		# length followed by each keyframe struct) (Time, Frame, File Position)
-		{keyframes, data} = Reader.read_list(data, &Meta.Keyframe.read/1)
+		{keyframes, data} = Reader.read_list(data, &Keyframe.read/1)
 
 		# Array of bytes that is the bulk of the data. This is the raw network
 		# stream. (array length followed by a bunch of bytes)
@@ -100,11 +107,11 @@ defmodule Gizmo.Replay do
 		# Array of debugging logs (strings). This reminds me that I should
 		# probably turn these off to make the replays smaller.
 		# (array length followed by each string)
-		{messages, data} = Reader.read_list(data, &Meta.Message.read/1)
+		{messages, data} = Reader.read_list(data, &Message.read/1)
 
 		# Array of information used to display the Tick marks in the replay
 		# (goal scores). (array length followed by each tick struct) (Type, Frame)
-		{marks, data} = Reader.read_list(data, &Meta.Mark.read/1)
+		{marks, data} = Reader.read_list(data, &Mark.read/1)
 
 		# Array of strings of replicated Packages
 		{packages, data} = Reader.read_list(data, &Reader.read_string/1)
@@ -121,7 +128,7 @@ defmodule Gizmo.Replay do
 
 		# Map of string, integer pairs for the Class Index Map. Whenever a class
 		# is used in the network stream it is given an integer id by this map.
-		{class_map_nodes, data} = Reader.read_list(data, &Meta.ClassMapNode.read/1)
+		{class_map_nodes, data} = Reader.read_list(data, &ClassMapNode.read/1)
 		class_map = Enum.reduce(class_map_nodes, %{},
 			fn(class_map_node, acc) ->
 				Map.put(acc, class_map_node.netstream_id, class_map_node.name)
@@ -131,7 +138,7 @@ defmodule Gizmo.Replay do
 		# "Class Net Cache Map" maps each replicated property in a class to an
 		# integer id used in the network stream.
 		{cache, data} = Reader.read_list(data,
-			fn(data) -> Meta.CacheNode.read(data, object_map) end
+			fn(data) -> CacheNode.read(data, object_map) end
 		)
 		class_property_map = Meta.generate_class_property_map(class_map, cache)
 

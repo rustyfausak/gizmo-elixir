@@ -1,6 +1,6 @@
 defmodule Gizmo.Netstream.ActorState do
-	alias Gizmo.Reader, as: Reader
 	alias Gizmo.Netstream.ActorState, as: Self
+	alias Gizmo.Reader, as: Reader
 
 	defstruct [
 		:unknown1,
@@ -16,7 +16,7 @@ defmodule Gizmo.Netstream.ActorState do
 	# actors serialize it.
 	def read_new(data, meta) do
 		<< unknown1 :: bits-size(1), data :: bits >> = data
-		{object_id, data} = Reader.read_int(data, 32)
+		{object_id, data} = Reader.read_rev_int(data, 32)
 		object_name = Map.fetch!(meta.object_map, object_id)
 		actor_state = %Self{
 			unknown1: unknown1,
