@@ -1,5 +1,6 @@
-defmodule Gizmo.Frame do
-	alias Gizmo.Replication, as: Replication
+defmodule Gizmo.Netstream.Frame do
+	alias Gizmo.Netstream.Frame, as: Self
+	alias Gizmo.Netstream.Replication, as: Replication
 
 	defstruct [
 		:time,
@@ -20,7 +21,7 @@ defmodule Gizmo.Frame do
 		if time == 0 && delta == 0 do
 			nil
 		end
-		{%Gizmo.Frame{
+		{%Self{
 			time: time,
 			delta: delta,
 			replications: read_replications(data, meta)

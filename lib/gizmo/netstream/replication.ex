@@ -1,8 +1,9 @@
-defmodule Gizmo.Replication do
-	# @MAX_CHANNELS 1024
+defmodule Gizmo.Netstream.Replication do
+	@max_channels 1024
 
 	alias Gizmo.Helper, as: Helper
-	alias Gizmo.ActorState, as: ActorState
+	alias Gizmo.Netstream.ActorState, as: ActorState
+	alias Gizmo.Netstream.Replication, as: Self
 
 	defstruct [
 		:actor_id,
@@ -21,8 +22,7 @@ defmodule Gizmo.Replication do
 		else
 			IO.inspect "flag = 1"
 			# compressed integer for the actor's network channel ID (max value is MaxChannels)
-			# n = Helper.bitsize(@MAX_CHANNELS)
-			n = Helper.bitsize(1024)
+			n = Helper.bitsize(@max_channels)
 			IO.inspect "read n #{n}"
 			<< actor_id :: size(n), data :: bits >> = data
 			IO.inspect "actor_id = #{actor_id}"

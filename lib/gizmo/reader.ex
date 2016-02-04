@@ -4,6 +4,26 @@ defmodule Gizmo.Reader do
 	parameter in these functions represents the binary file.
 	"""
 
+	def reverse_endian(data) do
+		if byte_size(data) > 1 do
+			<<
+				byte :: bits-size(8),
+				data :: bits
+			>> = data
+			reverse_bits(byte, <<>>) <> reverse_endian(data)
+		else
+			<<>>
+		end
+	end
+
+	def reverse_bits(<<>>, acc) do
+		acc
+	end
+
+	def reverse_bits(<< h :: size(1), data :: bits >>, acc) do
+		reverse_bits(data, << h :: size(1), acc :: bits >>)
+	end
+
 	@doc """
 	Read a list. Each item is read using the function `read_element`.
 
