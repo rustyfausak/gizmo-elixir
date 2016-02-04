@@ -1,5 +1,5 @@
-defmodule Gizmo.Netstream.ActorState do
-	alias Gizmo.Netstream.ActorState, as: Self
+defmodule Gizmo.Netstream.ActorData do
+	alias Gizmo.Netstream.ActorData, as: Self
 	alias Gizmo.Reader, as: Reader
 
 	defstruct [

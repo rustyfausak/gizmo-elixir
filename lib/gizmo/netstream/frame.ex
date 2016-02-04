@@ -9,11 +9,15 @@ defmodule Gizmo.Netstream.Frame do
 		:replications
 	]
 
+	def read(<<>>, meta) do
+		{nil, <<>>}
+	end
+
 	@doc """
 	Each frame is composed like this:
 	 - Current Time
 	 - Delta Time (since last frame)
-	 - Data for actors
+	 - Data for actors (replications)
 	"""
 	def read(data, meta) do
 		IO.inspect "Frame.read"
@@ -22,7 +26,7 @@ defmodule Gizmo.Netstream.Frame do
 		IO.inspect time
 		IO.inspect delta
 		if time == 0 && delta == 0 do
-			nil
+			{nil, data}
 		end
 		{%Self{
 			time: time,

@@ -19,6 +19,10 @@ defmodule Gizmo.Meta do
 		:class_property_map
 	]
 
+	def get_class(object_map, object_id) do
+
+	end
+
 	@doc """
 	`class_map` is a map: `%{netstream_id => name, ..}`
 	`cache` is a list of CacheNode: `[%CacheNode{..}, ..]`
@@ -27,7 +31,7 @@ defmodule Gizmo.Meta do
 		`%{class_netstream_id => %{property_netstream_id => name, ..}, ..}`
 	"""
 	def generate_class_property_map(class_map, cache) do
-		Enum.reduce(class_map, %{}, fn({netstream_id, name}, acc) ->
+		Enum.reduce(class_map, %{}, fn({netstream_id, _}, acc) ->
 			node = Enum.find(cache, fn(x) -> x.class_id == netstream_id end)
 			if node do
 				Map.put(acc, netstream_id, get_property_map(cache, node.cache_id))

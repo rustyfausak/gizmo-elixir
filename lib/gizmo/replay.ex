@@ -36,13 +36,13 @@ defmodule Gizmo.Replay do
 	Returns list of frames.
 	"""
 	def parse_netstream(netstream, meta) do
-		Enum.reverse(_parse_netstream(netstream, meta))
+		Enum.reverse(_parse_frames(netstream, meta))
 	end
 
-	def _parse_netstream(netstream, meta) do
-		{frame, netstream} = Frame.read(netstream, meta)
+	def _parse_frames(data, meta) do
+		{frame, data} = Frame.read(data, meta)
 		if frame do
-			[frame | _parse_netstream(netstream, meta)]
+			[frame | _parse_frames(data, meta)]
 		else
 			[]
 		end
