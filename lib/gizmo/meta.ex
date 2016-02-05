@@ -19,8 +19,16 @@ defmodule Gizmo.Meta do
 		:class_property_map
 	]
 
-	def get_class(object_map, object_id) do
+	def get_class(object_map, 0) do
+		raise "Could not find class name"
+	end
 
+	def get_class(object_map, object_id) do
+		name = Map.fetch!(object_map, object_id)
+		if String.contains?(name, "Archetype") do
+			get_class(object_map, object_id - 1)
+		end
+		name
 	end
 
 	@doc """

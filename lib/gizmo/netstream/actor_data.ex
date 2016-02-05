@@ -1,11 +1,13 @@
 defmodule Gizmo.Netstream.ActorData do
+	alias Gizmo.Meta, as: Meta
 	alias Gizmo.Netstream.ActorData, as: Self
 	alias Gizmo.Reader, as: Reader
 
 	defstruct [
 		:unknown1,
 		:object_id,
-		:object_name
+		:object_name,
+		:class_name
 	]
 
 	# Some data for how to reference the actor. If it's a static actor (placed
@@ -18,14 +20,16 @@ defmodule Gizmo.Netstream.ActorData do
 		<< unknown1 :: bits-size(1), data :: bits >> = data
 		{object_id, data} = Reader.read_rev_int(data, 32)
 		object_name = Map.fetch!(meta.object_map, object_id)
-		actor_state = %Self{
+		class_name = Meta.get_class(meta.object_map, object_id)
+		actor_data = %Self{
 			unknown1: unknown1,
 			object_id: object_id,
-			object_name: object_name
+			object_name: object_name,
+			class_name: class_name
 		}
-		IO.inspect actor_state
+		IO.inspect actor_data
 		System.halt(0)
-		{actor_state, data}
+		{actor_data, data}
 	end
 
 	def read_existing(data, meta) do
