@@ -4,6 +4,15 @@ defmodule Gizmo.Reader do
 	parameter in these functions represents the binary file.
 	"""
 
+	def read_int_max(n, data) do
+
+	end
+
+	@doc """
+	Reverses the bit ordering of each byte in `data`.
+
+	Returns a binary.
+	"""
 	def reverse_bits_in_byte(data) do
 		if byte_size(data) > 0 do
 			<<
@@ -16,6 +25,11 @@ defmodule Gizmo.Reader do
 		end
 	end
 
+	@doc """
+	Reverses the bits of the binary `data`.
+
+	Returns a binary.
+	"""
 	def reverse_bits(data) do
 		reverse_bits(data, <<>>)
 	end
@@ -28,12 +42,22 @@ defmodule Gizmo.Reader do
 		reverse_bits(data, << b :: bits-size(1), acc :: bits >>)
 	end
 
+	@doc """
+	Reverses the first `n` bits from `data` then reads a float from it.
+
+	Returns a tuple of `{float, binary}`
+	"""
 	def read_rev_float(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
 		<< b :: float-size(n) >> = reverse_bits(b)
 		{b, data}
 	end
 
+	@doc """
+	Reverses the first `n` bits from `data`  then reads an int from it.
+
+	Returns a tuple of `{int, binary}`
+	"""
 	def read_rev_int(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
 		<< b :: unsigned-integer-size(n) >> = reverse_bits(b)
