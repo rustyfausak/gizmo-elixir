@@ -1,6 +1,6 @@
-defmodule Gizmo.Netstream.ActorData do
+defmodule Gizmo.Netstream.ActorState do
 	alias Gizmo.Meta, as: Meta
-	alias Gizmo.Netstream.ActorData, as: Self
+	alias Gizmo.Netstream.ActorState, as: Self
 	alias Gizmo.Netstream.ClassInit, as: ClassInit
 	alias Gizmo.Reader, as: Reader
 
@@ -24,16 +24,14 @@ defmodule Gizmo.Netstream.ActorData do
 		object_name = Map.fetch!(meta.object_map, object_id)
 		class_name = Meta.get_class(meta.object_map, object_id)
 		{class_init, data} = ClassInit.read(class_name, data)
-		actor_data = %Self{
+		actor_state = %Self{
 			unknown1: unknown1,
 			object_id: object_id,
 			object_name: object_name,
 			class_name: class_name,
 			class_init: class_init
 		}
-		IO.inspect actor_data
-		System.halt(0)
-		{actor_data, data}
+		{actor_state, data}
 	end
 
 	def read_existing(data, meta) do

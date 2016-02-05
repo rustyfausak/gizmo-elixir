@@ -1,5 +1,5 @@
 defmodule Gizmo.Netstream.Replication do
-	alias Gizmo.Netstream.ActorData, as: ActorData
+	alias Gizmo.Netstream.ActorState, as: ActorState
 	alias Gizmo.Netstream.Replication, as: Self
 	alias Gizmo.Reader, as: Reader
 
@@ -22,23 +22,23 @@ defmodule Gizmo.Netstream.Replication do
 			{actor_id, data} = Reader.read_rev_int(data, num_bits)
 			IO.inspect "actor_id = #{actor_id}"
 			# 1 bit to signal if channel is closing (actor was destroyed)
-			<< channel_state :: bits-size(1), data :: bits >> = data
-			if channel_state == << 0 :: size(1) >> do
-				IO.inspect "channel state = 0"
+			<< channel_flag :: bits-size(1), data :: bits >> = data
+			if channel_flag == << 0 :: size(1) >> do
+				IO.inspect "channel state = 0 (close)"
 				# close actor
 			else
-				IO.inspect "channel state = 1"
+				IO.inspect "channel state = 1 (open)"
 				# Data for actors that are replicating this frame
 				# 1 bit to signal if it is a new actor
-				<< actor_state :: bits-size(1), data :: bits >> = data
-				if actor_state == << 1 :: size(1) >> do
-					IO.inspect "actor state = 1"
+				<< actor_flag :: bits-size(1), data :: bits >> = data
+				if actor_flag == << 1 :: size(1) >> do
+					IO.inspect "actor state = 1 (new)"
 					# new actor
-					{actor, data} = ActorData.read_new(data, meta)
+					{actor_state, data} = ActorState.read_new(data, meta)
 				else
-					IO.inspect "actor state = 0"
+					IO.inspect "actor state = 0 (existing)"
 					# existing actor
-					{actor, data} = ActorData.read_existing(data, meta)
+					{actor, data} = ActorState.read_existing(data, meta)
 				end
 			end
 			{nil, data}
