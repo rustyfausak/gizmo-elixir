@@ -25,10 +25,11 @@ defmodule Gizmo.Meta do
 
 	def get_class(object_map, object_id) do
 		name = Map.fetch!(object_map, object_id)
-		if String.contains?(name, "Archetype") do
+		if String.contains?(to_string(name), "Archetype") do
 			get_class(object_map, object_id - 1)
+		else
+			name
 		end
-		name
 	end
 
 	@doc """
