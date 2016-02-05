@@ -31,11 +31,17 @@ defmodule Gizmo.Netstream.ClassInit do
 	]
 
 	def read(class_name, data) do
+		class_name = to_string(class_name)
+		location = nil
+		rotation = nil
+
 		if MapSet.member?(@classes_with_locations, class_name) do
+			IO.inspect('read location')
 			{location, data} = Vector.read(data)
 		end
 
 		if MapSet.member?(@classes_with_rotations, class_name) do
+			IO.inspect('read rotation')
 			{rotation, data} = Rotation.read(data)
 		end
 

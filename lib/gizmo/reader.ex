@@ -1,11 +1,38 @@
 defmodule Gizmo.Reader do
+	use Bitwise
+
 	@moduledoc """
 	Handle reading basic types from a Rocket League replay binary file. The `data`
 	parameter in these functions represents the binary file.
 	"""
 
-	def read_int_max(n, data) do
+	@doc """
+	Returns the number of bits needed to represent the given `int`.
+	"""
+	def bitsize(int) do
+		int
+		|> :math.log2
+		|> Float.ceil
+		|> trunc
+	end
 
+	@doc """
+	"""
+	def read_serialized_int(data, max_value) do
+		max_bits = bitsize(max_value)
+		_read_serialized_int(data, max_value, max_bits)
+	end
+
+	def _read_serialized_int(data, max_value, max_bits, i \\ 0, value \\ 0) do
+		if i < max_bits && (value + (bsl(1, i)) <= max_value) do
+			<< bit :: bits-size(1), data :: bits >> = data
+			if bit == << 1 :: size(1) >> do
+				value = value + (bsl(1, i))
+			end
+			_read_serialized_int(data, max_value, max_bits, i + 1, value)
+		else
+			{value, data}
+		end
 	end
 
 	@doc """

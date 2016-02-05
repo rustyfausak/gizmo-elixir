@@ -1,7 +1,7 @@
 defmodule Gizmo.Netstream.ActorData do
 	alias Gizmo.Meta, as: Meta
 	alias Gizmo.Netstream.ActorData, as: Self
-	alias Gizmo.Netstream.ClassInit, as: Self
+	alias Gizmo.Netstream.ClassInit, as: ClassInit
 	alias Gizmo.Reader, as: Reader
 
 	defstruct [
@@ -28,7 +28,8 @@ defmodule Gizmo.Netstream.ActorData do
 			unknown1: unknown1,
 			object_id: object_id,
 			object_name: object_name,
-			class_name: class_name
+			class_name: class_name,
+			class_init: class_init
 		}
 		IO.inspect actor_data
 		System.halt(0)
