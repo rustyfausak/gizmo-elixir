@@ -41,6 +41,7 @@ defmodule Gizmo.Replay do
 
 	def _parse_frames(data, meta) do
 		{frame, data} = Frame.read(data, meta)
+		IO.inspect frame
 		if frame do
 			[frame | _parse_frames(data, meta)]
 		else

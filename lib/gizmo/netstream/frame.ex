@@ -20,11 +20,8 @@ defmodule Gizmo.Netstream.Frame do
 	 - Data for actors (replications)
 	"""
 	def read(data, meta) do
-		IO.inspect "Frame.read"
 		{time, data} = Reader.read_rev_float(data)
 		{delta, data} = Reader.read_rev_float(data)
-		IO.inspect time
-		IO.inspect delta
 		if time == 0 && delta == 0 do
 			{nil, data}
 		end
@@ -41,7 +38,7 @@ defmodule Gizmo.Netstream.Frame do
 
 	def _read_replications(data, meta) do
 		{replication, data} = Replication.read(data, meta)
-		IO.inspect replication
+		IO.inspect(replication, pretty: true, width: 1)
 		if replication do
 			[replication | _read_replications(data, meta)]
 		else
