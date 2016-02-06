@@ -25,8 +25,8 @@ defmodule Gizmo.Reader do
 
 	def _read_serialized_int(data, max_value, max_bits, i \\ 0, value \\ 0) do
 		if i < max_bits && (value + (bsl(1, i)) <= max_value) do
-			<< bit :: bits-size(1), data :: bits >> = data
-			if bit == << 1 :: size(1) >> do
+			<< bit :: size(1), data :: bits >> = data
+			if bit == 1 do
 				value = value + (bsl(1, i))
 			end
 			_read_serialized_int(data, max_value, max_bits, i + 1, value)

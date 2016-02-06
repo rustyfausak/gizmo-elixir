@@ -1,6 +1,5 @@
 defmodule Gizmo.Netstream.ClassInit do
 	alias Gizmo.Netstream.ClassInit, as: Self
-	alias Gizmo.Netstream.Rotation, as: Rotation
 	alias Gizmo.Netstream.Vector, as: Vector
 
 	@classes_with_locations MapSet.new([
@@ -15,8 +14,12 @@ defmodule Gizmo.Netstream.ClassInit do
 		"TAGame.GameEvent_SoccarPrivate_TA",
 		"TAGame.GameEvent_SoccarSplitscreen_TA",
 		"TAGame.GRI_TA",
+		"TAGame.Default__PRI_TA",
 		"TAGame.PRI_TA",
-		"TAGame.Team_TA"
+		"TAGame.Team_TA",
+		"TAGame.Team_Soccar_TA",
+		"TAGame.Ball_TA",
+		"TAGame.Car_TA",
 	])
 
 	@classes_with_rotations MapSet.new([
@@ -42,7 +45,7 @@ defmodule Gizmo.Netstream.ClassInit do
 
 		if MapSet.member?(@classes_with_rotations, class_name) do
 			IO.inspect('read rotation')
-			{rotation, data} = Rotation.read(data)
+			{rotation, data} = Vector.read_bytewise(data)
 		end
 
 		{%Self{

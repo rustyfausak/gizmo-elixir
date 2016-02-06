@@ -19,7 +19,7 @@ defmodule Gizmo.Netstream.ActorState do
 	# roll). Not all actors need this initial location and rotation so not all
 	# actors serialize it.
 	def read_new(data, meta) do
-		<< unknown1 :: bits-size(1), data :: bits >> = data
+		<< unknown1 :: size(1), data :: bits >> = data
 		{object_id, data} = Reader.read_rev_int(data, 32)
 		object_name = Map.fetch!(meta.object_map, object_id)
 		class_name = Meta.get_class(meta.object_map, object_id)
