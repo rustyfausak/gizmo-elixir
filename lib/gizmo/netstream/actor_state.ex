@@ -2,14 +2,16 @@ defmodule Gizmo.Netstream.ActorState do
 	alias Gizmo.Meta, as: Meta
 	alias Gizmo.Netstream.ActorState, as: Self
 	alias Gizmo.Netstream.ClassInit, as: ClassInit
+	alias Gizmo.Netstream.Property, as: Property
 	alias Gizmo.Reader, as: Reader
 
 	defstruct [
-		:unknown1,
+		:unknown1, # property flag?
 		:object_id,
 		:object_name,
 		:class_name,
-		:class_init
+		:class_init,
+		:properties
 	]
 
 	# Some data for how to reference the actor. If it's a static actor (placed
@@ -24,17 +26,37 @@ defmodule Gizmo.Netstream.ActorState do
 		object_name = Map.fetch!(meta.object_map, object_id)
 		class_name = Meta.get_class(meta.object_map, object_id)
 		{class_init, data} = ClassInit.read(class_name, data)
-		actor_state = %Self{
+		{%Self{
 			unknown1: unknown1,
 			object_id: object_id,
 			object_name: object_name,
 			class_name: class_name,
 			class_init: class_init
-		}
-		{actor_state, data}
+		}, data}
 	end
 
+	# Property values for each replicating actor. We only serialize property
+	# values that have changed since the last frame, unless this is a keyframe
+	# in which we serialize all replicated properties.
 	def read_existing(data, meta) do
-		{nil, data}
+		{%Self{
+			properties: read_properties(data, meta)
+		}, data}
+	end
+
+	def read_properties(data, meta) do
+		Enum.reverse(_read_properties(data, meta))
+	end
+
+	def _read_properties(data, meta) do
+		<< property_flag :: size(1), data :: bits >> = data
+		if property_flag == 1 do
+			{property, data} = Property.read(data, meta)
+			[property | _read_properties(data, meta)]
+		else
+			[]
+
+		end
+
 	end
 end

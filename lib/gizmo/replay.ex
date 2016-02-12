@@ -31,7 +31,7 @@ defmodule Gizmo.Replay do
 	The network stream is pretty much just the same data that the server sends
 	to the client, so it does have some compression going on. This is not an
 	overall compression, it is a per-property compression (such as vector
-	compression for velocity, location)
+	compression for velocity, location).
 
 	Returns list of frames.
 	"""

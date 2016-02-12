@@ -10,6 +10,10 @@ defmodule Gizmo.Netstream.Vector do
 		:z
 	]
 
+	@doc """
+	Read a vector. First read a serialized int. Then read that int plus 2 for
+	each of X, Y, Z. Then subtract the bias from each of X, Y, Z.
+	"""
 	def read(data, max_value \\ 20) do # 20 or 19?
 		{num_bits, data} = Reader.read_serialized_int(data, max_value)
 		bias = bsl(1, num_bits + 1)
@@ -24,6 +28,13 @@ defmodule Gizmo.Netstream.Vector do
 		}, data}
 	end
 
+	@doc """
+	Read a vector composed like this:
+
+		bit [byte for X] bit [byte for Y] bit [byte for Z]
+
+	Where the bits are signals on whether or not to read the byte.
+	"""
 	def read_bytewise(data) do
 		x = 0
 		y = 0
