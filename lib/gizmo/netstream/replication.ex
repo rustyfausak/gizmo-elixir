@@ -37,9 +37,23 @@ defmodule Gizmo.Netstream.Replication do
 					# New actor
 					is_new = true
 					{actor_state, data} = ActorState.read_new(data, meta)
+					# Save the class ID for this actor so we can use it when we
+					# parse existing actors
+					meta = Map.put(
+						meta,
+						:actor_object_map,
+						Map.put(
+							meta.actor_object_map,
+							actor_id,
+							actor_state.class_id
+						)
+					)
 				else
 					# Existing actor
-					{actor_state, data} = ActorState.read_existing(data, meta)
+					# Get the number of properties for this actor
+					class_id = Map.fetch!(meta.actor_object_map, actor_id)
+					num_properties = Enum.count(Map.fetch!(meta.class_property_map, class_id))
+					{actor_state, data} = ActorState.read_existing(data, meta, num_properties)
 				end
 			end
 			{%Self{
@@ -47,7 +61,7 @@ defmodule Gizmo.Netstream.Replication do
 				actor_state: actor_state,
 				is_new: is_new,
 				is_closing: is_closing
-			}, data}
+			}, data, meta}
 		end
 	end
 end
