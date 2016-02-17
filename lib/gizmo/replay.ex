@@ -1,7 +1,6 @@
 defmodule Gizmo.Replay do
 	alias Gizmo.Meta, as: Meta
 	alias Gizmo.Meta.CacheNode, as: CacheNode
-	alias Gizmo.Meta.CacheNodeProperty, as: CacheNodeProperty
 	alias Gizmo.Meta.ClassMapNode, as: ClassMapNode
 	alias Gizmo.Meta.Keyframe, as: Keyframe
 	alias Gizmo.Meta.Mark, as: Mark
@@ -18,6 +17,8 @@ defmodule Gizmo.Replay do
 
 	def parse(data) do
 		{meta, netstream} = parse_meta(data)
+		Meta.print(meta)
+		System.halt(0)
 		replay = Map.put(%Replay{}, :meta, meta)
 		netstream = Reader.reverse_bits_in_byte(netstream)
 		frames = parse_netstream(netstream, meta)

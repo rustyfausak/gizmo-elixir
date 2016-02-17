@@ -1,4 +1,6 @@
 defmodule Gizmo.Meta do
+	alias Gizmo.Meta.Property, as: Property
+
 	defstruct [
 		:size1,
 		:size2,
@@ -16,19 +18,47 @@ defmodule Gizmo.Meta do
 		:object_map,
 		:names,
 		:class_map,
-		:class_property_map
+		:class_property_map,
+		actor_object_map: %{}
 	]
 
-	def get_class(object_map, 0) do
+	def print(meta) do
+		IO.puts "=== Meta ==="
+
+		IO.puts "+ meta.size1 => #{meta.size1}"
+		IO.puts "+ meta.size2 => #{meta.size2}"
+		IO.puts "+ meta.crc1 => #{meta.crc1}"
+		IO.puts "+ meta.crc2 => #{meta.crc2}"
+		IO.puts "+ meta.version => #{meta.version1}.#{meta.version2}"
+		IO.puts "+ meta.label => #{meta.label}"
+
+		IO.puts "+ meta.properties =>"
+		IO.puts Property.format_map(meta.properties)
+
+		IO.puts "+ meta.object_map =>"
+		Enum.each(
+			Enum.sort(meta.object_map),
+			fn({k, v}) ->
+				IO.puts "  #{k} => #{v}"
+			end
+		)
+	end
+
+	def get_class(_, 0) do
 		raise "Could not find class name"
 	end
 
+	@doc """
+	Gets the class from the given `object_map` and `object_id`.
+
+	Returns a tuple of `{class_id, class_name}`.
+	"""
 	def get_class(object_map, object_id) do
 		name = Map.fetch!(object_map, object_id)
 		if String.contains?(to_string(name), "Archetype") do
 			get_class(object_map, object_id - 1)
 		else
-			name
+			{object_id, name}
 		end
 	end
 

@@ -8,6 +8,38 @@ defmodule Gizmo.Meta.Property do
 		:value
 	]
 
+	def format_map(property_map, depth \\ 1) do
+		to_string(["\n"] ++ Enum.reduce(
+			property_map,
+			[],
+			fn({k, property}, acc) ->
+				[
+					String.duplicate(" ", depth * 2),
+					String.rjust("#{k} => ", 20),
+					Self.format(property, depth),
+					"\n"
+				] ++ acc
+			end
+		))
+	end
+
+	def format(property, depth \\ 1) do
+		case to_string(property.type) do
+			"ArrayProperty" ->
+				to_string(["\n", Self.format_map(List.first(property.value), depth + 1)])
+			"BoolProperty" ->
+				if property.value == true do
+					"TRUE"
+				else
+					"FALSE"
+				end
+			"ByteProperty" ->
+				to_string(Tuple.to_list(property.value))
+			_ ->
+				to_string(property.value)
+		end
+	end
+
 	def read(data) do
 		{type, data} = Reader.read_string(data)
 		<< size :: little-unsigned-integer-size(64), data :: binary >> = data

@@ -37,7 +37,7 @@ defmodule Gizmo.Netstream.Frame do
 	end
 
 	def _read_replications(data, meta) do
-		{replication, data} = Replication.read(data, meta)
+		{replication, data, meta} = Replication.read(data, meta)
 		IO.inspect(replication, pretty: true, width: 1)
 		if replication do
 			[replication | _read_replications(data, meta)]
