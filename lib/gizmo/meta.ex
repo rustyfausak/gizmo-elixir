@@ -108,8 +108,6 @@ defmodule Gizmo.Meta do
 				)
 			end
 		)
-
-
 	end
 
 	def get_class(_, 0) do
