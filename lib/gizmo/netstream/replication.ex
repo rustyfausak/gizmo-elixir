@@ -52,8 +52,7 @@ defmodule Gizmo.Netstream.Replication do
 					# Existing actor
 					# Get the number of properties for this actor
 					class_id = Map.fetch!(meta.actor_object_map, actor_id)
-					num_properties = Enum.count(Map.fetch!(meta.class_property_map, class_id))
-					{actor_state, data} = ActorState.read_existing(data, meta, num_properties)
+					{actor_state, data} = ActorState.read_existing(data, meta, class_id)
 				end
 			end
 			{%Self{
