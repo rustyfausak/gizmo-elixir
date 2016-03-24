@@ -45,22 +45,25 @@ defmodule Gizmo.Netstream.ActorState do
 	in which we serialize all replicated properties.
 	"""
 	def read_existing(data, meta, num_properties) do
+		{properties, data} = read_properties(data, meta, num_properties)
 		{%Self{
-			properties: read_properties(data, meta, num_properties)
+			properties: properties
 		}, data}
 	end
 
 	def read_properties(data, meta, num_properties) do
-		Enum.reverse(_read_properties(data, meta, num_properties))
+		{properties, data} = _read_properties(data, meta, num_properties)
+		{Enum.reverse(properties), data}
 	end
 
 	def _read_properties(data, meta, num_properties) do
 		<< property_flag :: size(1), data :: bits >> = data
 		if property_flag == 1 do
 			{property, data} = Property.read(data, meta, num_properties)
-			[property | _read_properties(data, meta, num_properties)]
+			{properties, data} = _read_properties(data, meta, num_properties)
+			{[property | properties], data}
 		else
-			[]
+			{[], data}
 		end
 	end
 end
