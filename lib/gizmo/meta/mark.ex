@@ -15,4 +15,8 @@ defmodule Gizmo.Meta.Mark do
 			frame: frame
 		}, data}
 	end
+
+	def format(mark) do
+		to_string([mark.type, ", f:", to_string(mark.frame)])
+	end
 end

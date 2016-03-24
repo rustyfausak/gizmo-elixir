@@ -1,4 +1,6 @@
 defmodule Gizmo.Meta do
+	alias Gizmo.Meta.Keyframe, as: Keyframe
+	alias Gizmo.Meta.Mark, as: Mark
 	alias Gizmo.Meta.Property, as: Property
 
 	defstruct [
@@ -25,23 +27,89 @@ defmodule Gizmo.Meta do
 	def print(meta) do
 		IO.puts "=== Meta ==="
 
-		IO.puts "+ meta.size1 => #{meta.size1}"
-		IO.puts "+ meta.size2 => #{meta.size2}"
-		IO.puts "+ meta.crc1 => #{meta.crc1}"
-		IO.puts "+ meta.crc2 => #{meta.crc2}"
-		IO.puts "+ meta.version => #{meta.version1}.#{meta.version2}"
-		IO.puts "+ meta.label => #{meta.label}"
+		IO.puts "meta.size1 => #{meta.size1}"
+		IO.puts "meta.size2 => #{meta.size2}"
+		IO.puts "meta.crc1 => #{meta.crc1}"
+		IO.puts "meta.crc2 => #{meta.crc2}"
+		IO.puts "meta.version => #{meta.version1}.#{meta.version2}"
+		IO.puts "meta.label => #{meta.label}"
+		IO.puts "meta.levels =>"
+		Enum.each(
+			meta.levels,
+			fn(x) ->
+				IO.puts "  #{x}"
+			end
+		)
+		IO.puts "meta.keyframes =>"
+		Enum.each(
+			meta.keyframes,
+			fn(x) ->
+				IO.puts "  " <> Keyframe.format(x)
+			end
+		)
+		IO.puts "meta.messages =>"
+		Enum.each(
+			meta.messages,
+			fn(x) ->
+				IO.puts "  #{x}"
+			end
+		)
+		IO.puts "meta.marks =>"
+		Enum.each(
+			meta.marks,
+			fn(x) ->
+				IO.puts "  " <> Mark.format(x)
+			end
+		)
+		IO.puts "meta.packages =>"
+		Enum.each(
+			meta.packages,
+			fn(x) ->
+				IO.puts "  #{x}"
+			end
+		)
+		IO.puts "meta.names =>"
+		Enum.each(
+			meta.names,
+			fn(x) ->
+				IO.puts "  #{x}"
+			end
+		)
 
-		IO.puts "+ meta.properties =>"
+		IO.puts "meta.properties =>"
 		IO.puts Property.format_map(meta.properties)
 
-		IO.puts "+ meta.object_map =>"
+		IO.puts "meta.object_map =>"
 		Enum.each(
 			Enum.sort(meta.object_map),
 			fn({k, v}) ->
 				IO.puts "  #{k} => #{v}"
 			end
 		)
+
+		IO.puts "meta.class_map =>"
+		Enum.each(
+			Enum.sort(meta.class_map),
+			fn({k, v}) ->
+				IO.puts "  #{k} => #{v}"
+			end
+		)
+
+		IO.puts "meta.class_property_map =>"
+		Enum.each(
+			Enum.sort(meta.class_property_map),
+			fn({k, v}) ->
+				IO.puts "  #{k} =>"
+				Enum.each(
+					Enum.sort(v),
+					fn({k2, v2}) ->
+						IO.puts "    #{k2} => #{v2}"
+					end
+				)
+			end
+		)
+
+
 	end
 
 	def get_class(_, 0) do

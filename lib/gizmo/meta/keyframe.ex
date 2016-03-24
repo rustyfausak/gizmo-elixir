@@ -17,4 +17,8 @@ defmodule Gizmo.Meta.Keyframe do
 			position: position
 		}, data}
 	end
+
+	def format(keyframe) do
+		to_string(["t:", to_string(Float.round(keyframe.time, 3)), ", f:", to_string(keyframe.frame), ", p:", to_string(keyframe.position)])
+	end
 end
