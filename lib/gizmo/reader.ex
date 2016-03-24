@@ -38,15 +38,15 @@ defmodule Gizmo.Reader do
 	@doc """
 	Reverses the bit ordering of each byte in `data`.
 
-	Returns a binary.
+	Returns bits.
 	"""
-	def reverse_bits_in_byte(data) do
+	def reverse_bytewise(data) do
 		if byte_size(data) > 0 do
 			<<
 				byte :: bits-size(8),
 				data :: bits
 			>> = data
-			reverse_bits(byte) <> reverse_bits_in_byte(data)
+			reverse_bits(byte) <> reverse_bytewise(data)
 		else
 			<<>>
 		end
@@ -55,7 +55,7 @@ defmodule Gizmo.Reader do
 	@doc """
 	Reverses the bits of the binary `data`.
 
-	Returns a binary.
+	Returns bits.
 	"""
 	def reverse_bits(data) do
 		reverse_bits(data, <<>>)
@@ -72,7 +72,7 @@ defmodule Gizmo.Reader do
 	@doc """
 	Reverses the first `n` bits from `data` then reads a float from it.
 
-	Returns a tuple of `{float, binary}`
+	Returns a tuple of `{float, bits}`
 	"""
 	def read_rev_float(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
@@ -83,7 +83,7 @@ defmodule Gizmo.Reader do
 	@doc """
 	Reverses the first `n` bits from `data`  then reads an int from it.
 
-	Returns a tuple of `{int, binary}`
+	Returns a tuple of `{int, bits}`
 	"""
 	def read_rev_int(data, n \\ 32) do
 		<< b :: bits-size(n), data :: bits >> = data
@@ -97,7 +97,7 @@ defmodule Gizmo.Reader do
 	Returns a tuple of `{list, data}`.
 	"""
 	def read_list(data, read_element) do
-		<< length :: little-unsigned-integer-size(32), data :: binary >> = data
+		<< length :: little-unsigned-integer-size(32), data :: bits >> = data
 		read_list(data, length, read_element)
 	end
 
@@ -158,7 +158,7 @@ defmodule Gizmo.Reader do
 
 	Returns a tuple of `{string, data}`.
 	"""
-	def read_string(<< _ :: size(8), data :: binary >>, string, n, _read_char) when n <= 1 do
+	def read_string(<< _ :: size(8), data :: bits >>, string, n, _read_char) when n <= 1 do
 		{string, data}
 	end
 
@@ -178,11 +178,20 @@ defmodule Gizmo.Reader do
 
 	Returns a tuple of `{string, data}`.
 	"""
-	def read_string(<< length :: little-unsigned-integer-size(32), data :: binary >>) do
+	def read_string(<< length :: little-integer-size(32), data :: bits >>) do
 		if length > 0 do
-			read_string(data, [], length, &read_utf8_char/1)
+			read_string(data, [], length, &read_char/1)
 		else
 			read_string(data, [], length * 2, &read_utf16_char/1)
+		end
+	end
+
+	def read_rev_string(data) do
+		{length, data} = read_rev_int(data)
+		if length > 0 do
+			read_string(data, [], length, &read_rev_char/1)
+		else
+			read_string(data, [], length * 2, &read_rev_utf16_char/1)
 		end
 	end
 
@@ -191,7 +200,11 @@ defmodule Gizmo.Reader do
 
 	Returns a tuple of `{char, data}`.
 	"""
-	def read_utf8_char(<< char :: utf8, data :: binary >>) do
+	def read_char(<< char :: utf8, data :: bits >>) do
+		{char, data}
+	end
+	def read_rev_char(<< b :: bits-size(8), data :: bits >>) do
+		<< char :: bits-size(8) >> = reverse_bits(b)
 		{char, data}
 	end
 
@@ -200,7 +213,11 @@ defmodule Gizmo.Reader do
 
 	Returns a tuple of `{char, data}`.
 	"""
-	def read_utf16_char(<< char :: utf16, data :: binary >>) do
+	def read_utf16_char(<< char :: utf16, data :: bits >>) do
+		{char, data}
+	end
+	def read_rev_utf16_char(<< b :: bits-size(16), data :: bits >>) do
+		<< char :: utf16 >> = reverse_bytewise(b)
 		{char, data}
 	end
 end
