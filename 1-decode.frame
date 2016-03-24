@@ -104,13 +104,13 @@
 0 actor state
 1 property flag
 11111 property ID 31 Engine.GameReplicationInfo:GameClass
-    011010011000000000000000000000000
+    0 11010011000000000000000000000000
 1 property flag
 01101 property ID 22 Engine.GameReplicationInfo:ServerName
     01110000000000000000000000000000 string length = 14
-    11110010 O
-    01100110 f
-    01100110 f
+    11110010 O 79
+    01100110 f 102
+    01100110 f 102
     00110110 l
     10010110 i
     01110110 n
@@ -124,8 +124,12 @@
     00000000 NUL
 
 1 property flag
-00000 property ID 0 Engine.Actor:RelativeRotation
-    11111000100010000000000000000000000000000
+000001 property ID 32 ProjectX.GRI_X:bGameStarted
+1
+
+1 property flag
+110001 property ID 35 ProjectX.GRI_X:ReplicatedGamePlaylist
+00010000000000000000000000000000
 
 0 end of properties
 
@@ -135,7 +139,8 @@
 0
 1 property flag
 011010 property ID 22 TAGame.GameEvent_TA:ReplicatedStateIndex
-    00100001001111000000000000000000 0000000000000
+    0010000
+    1001111000000000000000000 0000000000000
 1
 011001 TAGame.GameEvent_Soccar_TA:SecondsRemaining
     00110100100000000000000000000000
