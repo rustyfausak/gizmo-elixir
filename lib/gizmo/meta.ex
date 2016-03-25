@@ -120,11 +120,13 @@ defmodule Gizmo.Meta do
 	Returns a tuple of `{class_id, class_name}`.
 	"""
 	def get_class(object_map, object_id) do
-		name = Map.fetch!(object_map, object_id)
-		if String.contains?(to_string(name), "Archetype") do
-			get_class(object_map, object_id - 1)
-		else
-			{object_id, name}
+		name = to_string(Map.fetch!(object_map, object_id))
+		cond do
+			String.contains?(name, "Archetype") ->
+				get_class(object_map, object_id - 1)
+			String.equivalent?(name, "TAGame.Default__PRI_TA") ->
+				get_class(object_map, object_id - 1)
+			true -> {object_id, name}
 		end
 	end
 
