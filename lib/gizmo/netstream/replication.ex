@@ -16,7 +16,7 @@ defmodule Gizmo.Netstream.Replication do
 		# 1 bit to signal we are replicating another actor
 		<< replication_flag :: size(1), data :: bits >> = data
 		if replication_flag == 0 do
-			{nil, data}
+			{nil, data, meta}
 		else
 			# Compressed integer for the actor's network channel ID (max value is MaxChannels)
 			num_bits = Reader.bitsize(@max_channels)
