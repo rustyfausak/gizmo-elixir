@@ -124,6 +124,12 @@ defmodule Gizmo.Netstream.Property do
 				stuff = [str | stuff]
 				type = 'String'
 
+			# Other
+			String.equivalent?(property, "TAGame.GameEvent_TA:ReplicatedStateIndex") ->
+				{int, data} = Reader.read_serialized_int(data, 140) # arbitrary number, took from jjbott
+				stuff = [int | stuff]
+				type = 'Integer'
+
 			# Unknown
 			true ->
 				raise "No deserialize for actor property #{property}"
