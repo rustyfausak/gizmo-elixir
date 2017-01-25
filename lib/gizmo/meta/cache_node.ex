@@ -22,6 +22,10 @@ defmodule Gizmo.Meta.CacheNode do
 				Map.put(acc, property.netstream_id, property.name)
 			end
 		)
+		IO.puts " cache_node"
+		IO.puts "   class_id: #{class_id}"
+		IO.puts "   parent_cache_id: #{parent_cache_id}"
+		IO.puts "   cache_id: #{cache_id}"
 		{%Self{
 			class_id: class_id,
 			parent_cache_id: parent_cache_id,

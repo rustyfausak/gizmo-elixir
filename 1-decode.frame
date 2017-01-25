@@ -139,8 +139,12 @@
 0
 1 property flag
 011010 property ID 22 TAGame.GameEvent_TA:ReplicatedStateIndex
-    0010000
-    1001111000000000000000000 0000000000000
+    0010000 (4)
+
+1 property flag
+00111 property ID 28 TAGame.GameEvent_Team_TA:MaxTeamSize
+10000000000000000000000000000000 (1)
+
 1
 011001 TAGame.GameEvent_Soccar_TA:SecondsRemaining
     00110100100000000000000000000000

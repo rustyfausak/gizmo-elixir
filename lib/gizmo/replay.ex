@@ -19,9 +19,9 @@ defmodule Gizmo.Replay do
 		{meta, netstream} = parse_meta(data)
 		Meta.print(meta)
 		replay = Map.put(%Replay{}, :meta, meta)
-		netstream = Reader.reverse_bytewise(netstream)
-		frames = parse_netstream(netstream, meta)
-		replay = Map.put(replay, :frames, frames)
+		#netstream = Reader.reverse_bytewise(netstream)
+		#frames = parse_netstream(netstream, meta)
+		#replay = Map.put(replay, :frames, frames)
 		replay
 	end
 
@@ -138,10 +138,10 @@ defmodule Gizmo.Replay do
 
 		# "Class Net Cache Map" maps each replicated property in a class to an
 		# integer id used in the network stream.
-		{cache, data} = Reader.read_list(data,
+		{property_cache, data} = Reader.read_list(data,
 			fn(data) -> CacheNode.read(data, object_map) end
 		)
-		class_property_map = Meta.generate_class_property_map(class_map, cache)
+		class_property_map = Meta.generate_class_property_map(class_map, property_cache)
 
 		{Map.merge(meta, %{
 			size2: size2,
@@ -154,6 +154,7 @@ defmodule Gizmo.Replay do
 			object_map: object_map,
 			names: names,
 			class_map: class_map,
+			property_cache: property_cache,
 			class_property_map: class_property_map
 		}), netstream}
 	end

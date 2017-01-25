@@ -20,6 +20,7 @@ defmodule Gizmo.Meta do
 		:object_map,
 		:names,
 		:class_map,
+		:property_cache,
 		:class_property_map,
 		actor_object_map: %{}
 	]
@@ -138,11 +139,18 @@ defmodule Gizmo.Meta do
 		`%{class_netstream_id => %{property_netstream_id => name, ..}, ..}`
 	"""
 	def generate_class_property_map(class_map, cache) do
+		IO.puts "generate_class_property_map.."
 		Enum.reduce(class_map, %{}, fn({netstream_id, _}, acc) ->
+			IO.puts "netstream_id => #{netstream_id}"
 			node = Enum.find(cache, fn(x) -> x.class_id == netstream_id end)
 			if node do
+				IO.puts " found node"
+				IO.puts "  node.class_id => #{node.class_id}"
+				IO.puts "  node.parent_cache_id => #{node.parent_cache_id}"
+				IO.puts "  node.cache_id => #{node.cache_id}"
 				Map.put(acc, netstream_id, get_property_map(cache, node.cache_id))
 			else
+				IO.puts " no node"
 				acc
 			end
 		end)
@@ -155,11 +163,14 @@ defmodule Gizmo.Meta do
 	Returns a map.
 	"""
 	def get_property_map(cache, cache_id) do
+		IO.puts "    get_property_map(.., #{cache_id})"
 		cache_node = Enum.find(cache, fn(x) -> x.cache_id == cache_id end)
 		cond do
 			!cache_node ->
+				IO.puts "     no cache node"
 				%{}
 			!cache_node.parent_cache_id || cache_node.parent_cache_id == cache_id ->
+				IO.puts "     no cache node parent_cache_id or cache node parent_cache_id == cache_id"
 				cache_node.property_map
 			true ->
 				Map.merge(
